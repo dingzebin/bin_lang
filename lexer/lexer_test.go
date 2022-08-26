@@ -19,6 +19,7 @@ func TestNextToken(t *testing.T) {
 
 	10 == 10;
 	10 != 9;
+	if (x < y) {x};
 	`
 	tests := []struct {
 		expectedType    token.TokenType
@@ -79,6 +80,16 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "10"},
 		{token.NOT_EQ, "!="},
 		{token.INT, "9"},
+		{token.SEMICOLON, ";"},
+		{token.IF, "if"},
+		{token.LPAREN, "("},
+		{token.IDENT, "x"},
+		{token.LT, "<"},
+		{token.IDENT, "y"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "x"},
+		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
