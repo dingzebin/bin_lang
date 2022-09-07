@@ -245,7 +245,6 @@ func evalBlockStatements(stmts []ast.Statement, env *object.Environment) object.
 }
 
 func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
-	fmt.Println("stmts", stmts)
 	var result object.Object
 	for _, stmt := range stmts {
 		result = Eval(stmt, env)
