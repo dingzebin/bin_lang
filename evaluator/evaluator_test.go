@@ -13,7 +13,7 @@ func TestHashLiterals(t *testing.T) {
 	input := `let two = "";
 	{
 		"one": 10 - 9,
-		two: 1 + 1,
+		"two": 1 + 1,
 		"thr" + "ee": 6 / 2,
 		4: 4,
 		true: 5,
@@ -26,11 +26,12 @@ func TestHashLiterals(t *testing.T) {
 		t.Fatalf("Eval didn't return Hash. got=%T(%+v)", evaluated, evaluated)
 	}
 	expected := map[object.HashKey]int64{
-		(&object.String{Value: "one"}).HashKey(): 1,
-		(&object.String{Value: "two"}).HashKey(): 2,
-		(&object.String{Value: "thr"}).HashKey(): 3,
-		TRUE.HashKey():                           5,
-		FALSE.HashKey():                          4,
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
 	}
 	if len(result.Pairs) != len(expected) {
 		t.Fatalf("Hash has wrong num of pairs. got=%d", len(result.Pairs))
