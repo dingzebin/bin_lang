@@ -22,6 +22,8 @@ func TestNextToken(t *testing.T) {
 	if (x < y) {x};
 	"foobar"
 	"foo bar"
+	[1, 2];
+	{"foo": "bar"}
 	`
 	tests := []struct {
 		expectedType    token.TokenType
@@ -95,6 +97,17 @@ func TestNextToken(t *testing.T) {
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foobar"},
 		{token.STRING, "foo bar"},
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RBRACKET, "]"},
+		{token.SEMICOLON, ";"},
+		{token.LBRACE, "{"},
+		{token.STRING, "foo"},
+		{token.COLON, ":"},
+		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
 		{token.EOF, ""},
 	}
 	l := New(input)
