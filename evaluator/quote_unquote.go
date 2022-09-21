@@ -9,7 +9,7 @@ import (
 )
 
 func quote(node ast.Node, env *object.Environment) object.Object {
-	evalUnquoteCalls(node, env)
+	node = evalUnquoteCalls(node, env)
 	return &object.Quote{Node: node}
 }
 
