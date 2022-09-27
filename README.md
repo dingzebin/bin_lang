@@ -1,5 +1,5 @@
 # Introduction
-A simple Intepreter. most code of this Interpreter from "Writing An Interpreter In Go"
+A simple Intepreter. Most of the code from "Writing An Interpreter In Go"
 
 # Variables
 ```
