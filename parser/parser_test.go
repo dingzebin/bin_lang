@@ -8,6 +8,31 @@ import (
 	"github.com/bin_lang/lexer"
 )
 
+func TestAssignExpressionParsing(t *testing.T) {
+	input := `a = 2 * 3;`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	assign, ok := stmt.Expression.(*ast.AssignExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.AssignExpression. got=%T", stmt.Expression)
+	}
+	if assign.TokenLiteral() != "=" {
+		t.Fatalf("assign.TokenLiteral() is not '='. got=%s", assign.TokenLiteral())
+	}
+	if assign.Name.Value != "a" {
+		t.Fatalf("assign.Name.Value is not 'a'. got=%s", assign.Name.Value)
+	}
+	testInfixExpression(t, assign.Value, 2, "*", 3)
+}
 func TestMacroLiteralParsing(t *testing.T) {
 	input := `macro(x, y) { x + y; }`
 	l := lexer.New(input)
