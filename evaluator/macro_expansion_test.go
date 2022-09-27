@@ -25,7 +25,7 @@ func TestDefineMacros(t *testing.T) {
 	}
 	_, ok = env.Get("function")
 	if ok {
-		t.Fatalf("function should notbe defined")
+		t.Fatalf("function should not be defined")
 	}
 	obj, ok := env.Get("mymacro")
 	if !ok {
@@ -72,6 +72,18 @@ func TestExpandMacros(t *testing.T) {
 			reverse(2 + 2, 10 - 5);
 			`,
 			`(10 - 5) - (2 + 2)`,
+		},
+		{
+			`let unless = macro(condition, consequence, alternative) {
+				quote(if (!(unquote(condition))) {
+					unquote(consequence);
+				} else { 
+					unquote(alternative);
+				});
+			};
+			unless(10 > 5, puts("not greater"), puts("greater"));
+			`,
+			`if (!(10 > 5)) { puts("not greater") } else { puts("greater") }`,
 		},
 	}
 	for _, tt := range tests {
