@@ -13,6 +13,7 @@ import (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN
 	EQUALS      // ==
 	LESSGREATER // > or <
 	SUM         // +
@@ -33,6 +34,7 @@ var precedences = map[token.TokenType]int{
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
+	token.ASSIGN:   ASSIGN,
 }
 
 type (
@@ -81,6 +83,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.ASSIGN, p.parseAssignExpression)
 	return p
 }
 
@@ -228,6 +231,24 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	precedence := p.curPrecedence()
 	p.nextToken()
 	exp.Right = p.parseExpression(precedence)
+	return exp
+}
+
+func (p *Parser) parseAssignExpression(left ast.Expression) ast.Expression {
+	ident, ok := left.(*ast.Identifier)
+	if !ok {
+		msg := fmt.Sprintf("could not assign value to %s", left.TokenLiteral())
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+	exp := &ast.AssignExpression{Token: p.curToken, Name: ident}
+
+	p.nextToken()
+	exp.Value = p.parseExpression(LOWEST)
+
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
 	return exp
 }
 

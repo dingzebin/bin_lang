@@ -25,6 +25,7 @@ func TestNextToken(t *testing.T) {
 	[1, 2];
 	{"foo": "bar"};
 	macro(x, y) { x + y; };
+	a = 2 * 3;
 	`
 	tests := []struct {
 		expectedType    token.TokenType
@@ -109,6 +110,7 @@ func TestNextToken(t *testing.T) {
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
 		{token.RBRACE, "}"},
+		{token.SEMICOLON, ";"},
 		{token.MACRO, "macro"},
 		{token.LPAREN, "("},
 		{token.IDENT, "x"},
@@ -122,13 +124,18 @@ func TestNextToken(t *testing.T) {
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
+		{token.IDENT, "a"},
+		{token.ASSIGN, "="},
+		{token.INT, "2"},
+		{token.ASTERISK, "*"},
+		{token.INT, "3"},
+		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}
 	l := New(input)
 
 	for i, tt := range tests {
 		tok := l.NextToken()
-		t.Log(tok.Type, tok.Literal)
 		if tok.Type != tt.expectedType {
 			t.Fatalf("test[%d] - tokentype wrong. expected=%q, got=%q", i, tt.expectedType, tok.Type)
 		}

@@ -9,6 +9,30 @@ import (
 	"github.com/bin_lang/parser"
 )
 
+func TestAssginExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`let a = 2; a = 3;`,
+			3,
+		},
+		{
+			`let a = 2; let b = 3; a = b = 4;`,
+			4,
+		},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
 func TestQuoteUnquote(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -327,6 +351,10 @@ func TestErrorHandling(t *testing.T) {
 		{
 			`{"name": "Monkey"}[fn(x) { x }];`,
 			"unusable as hash key: FUNCTION",
+		},
+		{
+			`foobar = 2;`,
+			`identifier not found: foobar`,
 		},
 	}
 	for _, tt := range tests {
