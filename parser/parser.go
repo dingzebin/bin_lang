@@ -235,21 +235,21 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseAssignExpression(left ast.Expression) ast.Expression {
-	ident, ok := left.(*ast.Identifier)
-	if !ok {
+	switch ident := left.(type) {
+	case *ast.Identifier, *ast.IndexExpression:
+		exp := &ast.AssignExpression{Token: p.curToken, Name: ident}
+		p.nextToken()
+		exp.Value = p.parseExpression(LOWEST)
+
+		for !p.curTokenIs(token.SEMICOLON) {
+			p.nextToken()
+		}
+		return exp
+	default:
 		msg := fmt.Sprintf("could not assign value to %s", left.TokenLiteral())
 		p.errors = append(p.errors, msg)
 		return nil
 	}
-	exp := &ast.AssignExpression{Token: p.curToken, Name: ident}
-
-	p.nextToken()
-	exp.Value = p.parseExpression(LOWEST)
-
-	for !p.curTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-	return exp
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {

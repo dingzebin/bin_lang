@@ -58,16 +58,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(node.Name.Value, val)
 	case *ast.AssignExpression:
-		_, ok := env.Get(node.Name.Value)
-		if !ok {
-			return newError("identifier not found: " + node.Name.Value)
-		}
-		val := Eval(node.Value, env)
-		if isError(val) {
-			return val
-		}
-		env.Set(node.Name.Value, val)
-		return val
+		return evalAssignExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.FunctionLiteral:
@@ -109,6 +100,58 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	}
 
 	return nil
+}
+
+func evalAssignExpression(node *ast.AssignExpression, env *object.Environment) object.Object {
+	val := Eval(node.Value, env)
+	if isError(val) {
+		return val
+	}
+	switch name := node.Name.(type) {
+	case *ast.Identifier:
+		_, ok := env.Get(name.Value)
+		if !ok {
+			return newError("identifier not found: " + name.Value)
+		}
+		env.Set(name.Value, val)
+		return val
+	case *ast.IndexExpression:
+		left := Eval(name.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(name.Index, env)
+		switch {
+		case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+			return evalArrayAssignExpression(left, index, val)
+		case left.Type() == object.HASH_OBJ:
+			return evalHashAssignExpression(left, index, val)
+		default:
+			return newError("index operator not supported: %s", left.Type())
+		}
+	}
+	return NULL
+}
+
+func evalArrayAssignExpression(array, index, val object.Object) object.Object {
+	arrayObject := array.(*object.Array)
+	idx := index.(*object.Integer).Value
+	max := int64(len(arrayObject.Elements))
+	if idx < 0 || idx >= max {
+		return newError("index out of range %d with length %d", idx, max)
+	}
+	arrayObject.Elements[idx] = val
+	return val
+}
+
+func evalHashAssignExpression(hash, index, val object.Object) object.Object {
+	hashObject := hash.(*object.Hash)
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return newError("unusable as hash key: %s", index.Type())
+	}
+	hashObject.Pairs[key.HashKey()] = object.HashPair{Key: index, Value: val}
+	return val
 }
 
 func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {

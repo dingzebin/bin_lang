@@ -309,7 +309,7 @@ func (h *HashLiteral) String() string {
 
 type AssignExpression struct {
 	Token token.Token
-	Name  *Identifier
+	Name  Expression
 	Value Expression
 }
 
