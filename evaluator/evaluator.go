@@ -136,8 +136,8 @@ func evalAssignExpression(node *ast.AssignExpression, env *object.Environment) o
 func evalArrayAssignExpression(array, index, val object.Object) object.Object {
 	arrayObject := array.(*object.Array)
 	idx := index.(*object.Integer).Value
-	max := int64(len(arrayObject.Elements) - 1)
-	if idx < 0 || idx > max {
+	max := int64(len(arrayObject.Elements))
+	if idx < 0 || idx >= max {
 		return newError("index out of range %d with length %d", idx, max)
 	}
 	arrayObject.Elements[idx] = val

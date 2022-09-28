@@ -368,6 +368,11 @@ func TestErrorHandling(t *testing.T) {
 			`foobar = 2;`,
 			`identifier not found: foobar`,
 		},
+		{
+			`let arr = [1, 2];
+			 arr[2] = 3;`,
+			`index out of range 2 with length 2`,
+		},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
