@@ -30,7 +30,8 @@ int: int64
 ```
 let arr = [2, "3", 4];
 arr[2]; // 4
-
+arr[2] = 5;
+arr[2]; // 5
 ```
 
 ## Builtin Array Functions
@@ -51,7 +52,8 @@ push(arr, 5); // 2, 3, 4, 5
 ```
 let user = {"name": "Bin", "age": 24};
 user[name]; // Bin
-
+user[name] = "bin";
+user[name]; // bin 
 ```
 ## Builtin Map Functions
 ```

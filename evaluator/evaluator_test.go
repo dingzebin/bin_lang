@@ -22,6 +22,18 @@ func TestAssginExpression(t *testing.T) {
 			`let a = 2; let b = 3; a = b = 4;`,
 			4,
 		},
+		{
+			`let map = {"k1": 1, "k2": 2, "k3": 3}; map["k2"] = 5; map["k2"];`,
+			5,
+		},
+		{
+			`let map = {"k1": 1, "k2": 2, "k3": 3}; map["k" + "2"] = 5; map["k" + "2"];`,
+			5,
+		},
+		{
+			`let arr = [1, 2, 3, 4, 5]; arr[1 + 1] = 8; arr[2];`,
+			8,
+		},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)

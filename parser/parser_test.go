@@ -9,29 +9,62 @@ import (
 )
 
 func TestAssignExpressionParsing(t *testing.T) {
-	input := `a = 2 * 3;`
-	l := lexer.New(input)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	tests := []struct {
+		input    string
+		expected func(ast.AssignExpression)
+	}{
+		{
+			`a = 2 * 3;`,
+			func(assign ast.AssignExpression) {
+				ident, ok := assign.Name.(*ast.Identifier)
+				if !ok {
+					t.Errorf("assign.Name.Value is not ast.Identifier. got=%T", assign.Name)
+					return
+				}
+				if ident.Value != "a" {
+					t.Errorf("assign.Name.Value is not 'a'. got=%s", ident.Value)
+					return
+				}
+				testInfixExpression(t, assign.Value, 2, "*", 3)
+			},
+		},
+		{
+			`arr[1 + 2] = 3;`,
+			func(assign ast.AssignExpression) {
+				index, ok := assign.Name.(*ast.IndexExpression)
+				if !ok {
+					t.Errorf("assign.Name.Value is not ast.IndexExpression. got=%T", assign.Name)
+					return
+				}
+				if !testIdentifier(t, index.Left, "arr") {
+					return
+				}
+				testInfixExpression(t, index.Index, 1, "+", 2)
+				testIntegerLiteral(t, assign.Value, 3)
+			},
+		},
 	}
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+		}
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+		assign, ok := stmt.Expression.(*ast.AssignExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.AssignExpression. got=%T", stmt.Expression)
+		}
+		if assign.TokenLiteral() != "=" {
+			t.Fatalf("assign.TokenLiteral() is not '='. got=%s", assign.TokenLiteral())
+		}
+		tt.expected(*assign)
 	}
-	assign, ok := stmt.Expression.(*ast.AssignExpression)
-	if !ok {
-		t.Fatalf("stmt.Expression is not ast.AssignExpression. got=%T", stmt.Expression)
-	}
-	if assign.TokenLiteral() != "=" {
-		t.Fatalf("assign.TokenLiteral() is not '='. got=%s", assign.TokenLiteral())
-	}
-	if assign.Name.Value != "a" {
-		t.Fatalf("assign.Name.Value is not 'a'. got=%s", assign.Name.Value)
-	}
-	testInfixExpression(t, assign.Value, 2, "*", 3)
 }
 func TestMacroLiteralParsing(t *testing.T) {
 	input := `macro(x, y) { x + y; }`
