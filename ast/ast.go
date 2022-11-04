@@ -307,25 +307,6 @@ func (h *HashLiteral) String() string {
 	return out.String()
 }
 
-type AssignExpression struct {
-	Token token.Token
-	Name  Expression
-	Value Expression
-}
-
-func (as *AssignExpression) expressionNode()      {}
-func (as *AssignExpression) TokenLiteral() string { return as.Token.Literal }
-func (as *AssignExpression) String() string {
-	var out bytes.Buffer
-	out.WriteString(as.Name.String())
-	out.WriteString(" " + as.TokenLiteral() + " ")
-	if as.Value != nil {
-		out.WriteString(as.Value.String())
-	}
-	out.WriteString(";")
-	return out.String()
-}
-
 type ModifierFunc func(Node) Node
 
 func Modify(node Node, modifier ModifierFunc) Node {

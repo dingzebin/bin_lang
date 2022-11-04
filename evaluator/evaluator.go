@@ -32,15 +32,19 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return evalPrefixExpression(node.Operator, right)
 	case *ast.InfixExpression:
-		left := Eval(node.Left, env)
-		if isError(left) {
-			return left
+		if node.Operator == "=" {
+			return evalAssignExpression(node, env)
+		} else {
+			left := Eval(node.Left, env)
+			if isError(left) {
+				return left
+			}
+			right := Eval(node.Right, env)
+			if isError(right) {
+				return right
+			}
+			return evalInfixExpression(node.Operator, left, right)
 		}
-		right := Eval(node.Right, env)
-		if isError(right) {
-			return right
-		}
-		return evalInfixExpression(node.Operator, left, right)
 	case *ast.BlockStatement:
 		return evalBlockStatements(node.Statements, env)
 	case *ast.IfExpression:
@@ -57,8 +61,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		env.Set(node.Name.Value, val)
-	case *ast.AssignExpression:
-		return evalAssignExpression(node, env)
+
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.FunctionLiteral:
@@ -102,12 +105,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	return nil
 }
 
-func evalAssignExpression(node *ast.AssignExpression, env *object.Environment) object.Object {
-	val := Eval(node.Value, env)
+func evalAssignExpression(node *ast.InfixExpression, env *object.Environment) object.Object {
+	val := Eval(node.Right, env)
 	if isError(val) {
 		return val
 	}
-	switch name := node.Name.(type) {
+	switch name := node.Left.(type) {
 	case *ast.Identifier:
 		_, ok := env.Get(name.Value)
 		if !ok {
