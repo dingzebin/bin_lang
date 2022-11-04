@@ -67,6 +67,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefix(token.FOR, p.parseForExpression)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
@@ -234,24 +235,6 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return exp
 }
 
-func (p *Parser) parseAssignExpression(left ast.Expression) ast.Expression {
-	switch ident := left.(type) {
-	case *ast.Identifier, *ast.IndexExpression:
-		exp := &ast.AssignExpression{Token: p.curToken, Name: ident}
-		p.nextToken()
-		exp.Value = p.parseExpression(LOWEST)
-
-		for !p.curTokenIs(token.SEMICOLON) {
-			p.nextToken()
-		}
-		return exp
-	default:
-		msg := fmt.Sprintf("could not assign value to %s", left.TokenLiteral())
-		p.errors = append(p.errors, msg)
-		return nil
-	}
-}
-
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 	exp := p.parseExpression(LOWEST)
@@ -272,6 +255,31 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	}
 	lit.Body = p.parseBlockStatement()
 	return lit
+}
+
+func (p *Parser) parseForExpression() ast.Expression {
+	forExp := &ast.ForExpression{Token: p.curToken}
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	p.nextToken()
+	forExp.BeforeExpression = p.parseExpression(LOWEST)
+	p.nextToken()
+	p.nextToken()
+	forExp.Condition = p.parseExpression(LOWEST)
+	p.nextToken()
+	p.nextToken()
+	forExp.AfterExpression = p.parseExpression(LOWEST)
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	forExp.Consequence = p.parseBlockStatement()
+
+	return forExp
 }
 
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {

@@ -381,3 +381,24 @@ func (ml *MacroLiteral) String() string {
 	out.WriteString(ml.Body.String())
 	return out.String()
 }
+
+type ForExpression struct {
+	Token            token.Token
+	BeforeExpression Expression
+	Condition        Expression
+	AfterExpression  Expression
+	Consequence      *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode()      {}
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for ")
+	out.WriteString(fe.BeforeExpression.String())
+	out.WriteString(fe.Condition.String())
+	out.WriteString(fe.AfterExpression.String())
+	out.WriteString(" ")
+	out.WriteString(fe.Consequence.String())
+	return out.String()
+}

@@ -100,9 +100,42 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIndexExpression(left, index)
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
+	case *ast.ForExpression:
+		return evalForExpression(node, env)
 	}
-
 	return nil
+}
+
+func evalForExpression(node *ast.ForExpression, env *object.Environment) object.Object {
+	forOutEnv := object.NewEnclosedEnvironment(env)
+	var val object.Object
+	if node.BeforeExpression != nil {
+		val = Eval(node.BeforeExpression, forOutEnv)
+		if isError(val) {
+			return val
+		}
+	}
+	for val = Eval(node.BeforeExpression, forOutEnv); !isError(val); {
+		if isTruthy(val) {
+			forInnerEnv := object.NewEnclosedEnvironment(forOutEnv)
+			for _, statement := range node.Consequence.Statements {
+				val = Eval(statement, forInnerEnv)
+				switch result := val.(type) {
+				case *object.ReturnValue:
+					return result.Value
+				case *object.Error:
+					return result
+				}
+			}
+			val = Eval(node.AfterExpression, forOutEnv)
+			if isError(val) {
+				return val
+			}
+		} else {
+			break
+		}
+	}
+	return val
 }
 
 func evalAssignExpression(node *ast.InfixExpression, env *object.Environment) object.Object {

@@ -8,6 +8,50 @@ import (
 	"github.com/bin_lang/lexer"
 )
 
+func TestForExpressionParsing(t *testing.T) {
+	input := `for (i = 0; i < 10; i=i+1) {
+							a = i;
+						};
+	`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	forExp, ok := stmt.Expression.(*ast.ForExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ForExpression. got=%T", stmt.Expression)
+	}
+	testInfixExpression(t, forExp.BeforeExpression, "i", "=", 0)
+	testInfixExpression(t, forExp.Condition, "i", "<", 10)
+
+	after := forExp.AfterExpression.(*ast.InfixExpression)
+	ident, ok := after.Left.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("after.Left is not ast.Identifier. got=%T", after.Left)
+	}
+	if ident.Value != "i" {
+		t.Fatalf("after.Left.Value is not i. got=%s", ident.Value)
+	}
+	testInfixExpression(t, after.Right, "i", "+", 1)
+	if len(forExp.Consequence.Statements) != 1 {
+		t.Fatalf("consequence is not 1 statements. got=%d", len(forExp.Consequence.Statements))
+	}
+	consequence, ok := forExp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence.Statements[0] is not st.ExpressionStatement, got=%T", forExp.Consequence.Statements[0])
+	}
+	if !testInfixExpression(t, consequence.Expression, "a", "=", "i") {
+		return
+	}
+}
+
 func TestMacroLiteralParsing(t *testing.T) {
 	input := `macro(x, y) { x + y; }`
 	l := lexer.New(input)
