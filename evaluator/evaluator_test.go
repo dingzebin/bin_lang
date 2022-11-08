@@ -19,8 +19,19 @@ func TestForExpression(t *testing.T) {
 			 for (a = 0; a < 10; a = a + 1) {
 			 }
 			 let b = a;
+			 b;
 			`,
 			10,
+		},
+		{
+			`let a = 0;
+			 let sum = 0;
+			 for (a = 0; a < 10; a = a + 1) {
+				sum = sum + a;
+			 }
+			 sum;
+			`,
+			45,
 		},
 	}
 	for _, tt := range tests {

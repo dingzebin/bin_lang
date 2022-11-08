@@ -24,6 +24,16 @@ func (e *Environment) Get(name string) (Object, bool) {
 	return obj, ok
 }
 
+func (e *Environment) GetEnv(name string) *Environment {
+	_, ok := e.store[name]
+	if ok {
+		return e
+	} else if e.outer != nil {
+		return e.outer.GetEnv(name)
+	}
+	return nil
+}
+
 func (e *Environment) Set(name string, val Object) Object {
 	e.store[name] = val
 	return val

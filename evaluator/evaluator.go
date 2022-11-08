@@ -115,7 +115,7 @@ func evalForExpression(node *ast.ForExpression, env *object.Environment) object.
 			return val
 		}
 	}
-	for val = Eval(node.BeforeExpression, forOutEnv); !isError(val); {
+	for val = Eval(node.Condition, forOutEnv); !isError(val); val = Eval(node.Condition, forOutEnv) {
 		if isTruthy(val) {
 			forInnerEnv := object.NewEnclosedEnvironment(forOutEnv)
 			for _, statement := range node.Consequence.Statements {
@@ -145,8 +145,8 @@ func evalAssignExpression(node *ast.InfixExpression, env *object.Environment) ob
 	}
 	switch name := node.Left.(type) {
 	case *ast.Identifier:
-		_, ok := env.Get(name.Value)
-		if !ok {
+		env := env.GetEnv(name.Value)
+		if env == nil {
 			return newError("identifier not found: " + name.Value)
 		}
 		env.Set(name.Value, val)
