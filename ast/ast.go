@@ -307,25 +307,6 @@ func (h *HashLiteral) String() string {
 	return out.String()
 }
 
-type AssignExpression struct {
-	Token token.Token
-	Name  Expression
-	Value Expression
-}
-
-func (as *AssignExpression) expressionNode()      {}
-func (as *AssignExpression) TokenLiteral() string { return as.Token.Literal }
-func (as *AssignExpression) String() string {
-	var out bytes.Buffer
-	out.WriteString(as.Name.String())
-	out.WriteString(" " + as.TokenLiteral() + " ")
-	if as.Value != nil {
-		out.WriteString(as.Value.String())
-	}
-	out.WriteString(";")
-	return out.String()
-}
-
 type ModifierFunc func(Node) Node
 
 func Modify(node Node, modifier ModifierFunc) Node {
@@ -398,5 +379,26 @@ func (ml *MacroLiteral) String() string {
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") ")
 	out.WriteString(ml.Body.String())
+	return out.String()
+}
+
+type ForExpression struct {
+	Token            token.Token
+	BeforeExpression Expression
+	Condition        Expression
+	AfterExpression  Expression
+	Consequence      *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode()      {}
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for ")
+	out.WriteString(fe.BeforeExpression.String())
+	out.WriteString(fe.Condition.String())
+	out.WriteString(fe.AfterExpression.String())
+	out.WriteString(" ")
+	out.WriteString(fe.Consequence.String())
 	return out.String()
 }

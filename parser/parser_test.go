@@ -8,64 +8,50 @@ import (
 	"github.com/bin_lang/lexer"
 )
 
-func TestAssignExpressionParsing(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected func(ast.AssignExpression)
-	}{
-		{
-			`a = 2 * 3;`,
-			func(assign ast.AssignExpression) {
-				ident, ok := assign.Name.(*ast.Identifier)
-				if !ok {
-					t.Errorf("assign.Name.Value is not ast.Identifier. got=%T", assign.Name)
-					return
-				}
-				if ident.Value != "a" {
-					t.Errorf("assign.Name.Value is not 'a'. got=%s", ident.Value)
-					return
-				}
-				testInfixExpression(t, assign.Value, 2, "*", 3)
-			},
-		},
-		{
-			`arr[1 + 2] = 3;`,
-			func(assign ast.AssignExpression) {
-				index, ok := assign.Name.(*ast.IndexExpression)
-				if !ok {
-					t.Errorf("assign.Name.Value is not ast.IndexExpression. got=%T", assign.Name)
-					return
-				}
-				if !testIdentifier(t, index.Left, "arr") {
-					return
-				}
-				testInfixExpression(t, index.Index, 1, "+", 2)
-				testIntegerLiteral(t, assign.Value, 3)
-			},
-		},
+func TestForExpressionParsing(t *testing.T) {
+	input := `for (i = 0; i < 10; i=i+1) {
+							a = i;
+						};
+	`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
 	}
-	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
-		}
-		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
-		}
-		assign, ok := stmt.Expression.(*ast.AssignExpression)
-		if !ok {
-			t.Fatalf("stmt.Expression is not ast.AssignExpression. got=%T", stmt.Expression)
-		}
-		if assign.TokenLiteral() != "=" {
-			t.Fatalf("assign.TokenLiteral() is not '='. got=%s", assign.TokenLiteral())
-		}
-		tt.expected(*assign)
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	forExp, ok := stmt.Expression.(*ast.ForExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ForExpression. got=%T", stmt.Expression)
+	}
+	testInfixExpression(t, forExp.BeforeExpression, "i", "=", 0)
+	testInfixExpression(t, forExp.Condition, "i", "<", 10)
+
+	after := forExp.AfterExpression.(*ast.InfixExpression)
+	ident, ok := after.Left.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("after.Left is not ast.Identifier. got=%T", after.Left)
+	}
+	if ident.Value != "i" {
+		t.Fatalf("after.Left.Value is not i. got=%s", ident.Value)
+	}
+	testInfixExpression(t, after.Right, "i", "+", 1)
+	if len(forExp.Consequence.Statements) != 1 {
+		t.Fatalf("consequence is not 1 statements. got=%d", len(forExp.Consequence.Statements))
+	}
+	consequence, ok := forExp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Consequence.Statements[0] is not st.ExpressionStatement, got=%T", forExp.Consequence.Statements[0])
+	}
+	if !testInfixExpression(t, consequence.Expression, "a", "=", "i") {
+		return
 	}
 }
+
 func TestMacroLiteralParsing(t *testing.T) {
 	input := `macro(x, y) { x + y; }`
 	l := lexer.New(input)

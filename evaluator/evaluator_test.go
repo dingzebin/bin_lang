@@ -9,6 +9,42 @@ import (
 	"github.com/bin_lang/parser"
 )
 
+func TestForExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`let a = 0;
+			 for (a = 0; a < 10; a = a + 1) {
+			 }
+			 let b = a;
+			 b;
+			`,
+			10,
+		},
+		{
+			`let a = 0;
+			 let sum = 0;
+			 for (a = 0; a < 10; a = a + 1) {
+				sum = sum + a;
+			 }
+			 sum;
+			`,
+			45,
+		},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func TestAssginExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -19,7 +55,7 @@ func TestAssginExpression(t *testing.T) {
 			3,
 		},
 		{
-			`let a = 2; let b = 3; a = b = 4;`,
+			`let a = 2; let b = 3; a = (b = 4);`,
 			4,
 		},
 		{

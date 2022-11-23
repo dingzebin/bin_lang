@@ -7,6 +7,24 @@ let age = 2;
 age = 3;
 
 ```
+# For
+```
+let i = 0;
+for (i = 0; i < 10; i=i+1) {
+  
+}
+```
+# IF-ELSE
+```
+let i = 0;
+if (i < 10) {
+
+} else {
+  if (i > 15) {
+    
+  }
+}
+```
 
 # Functions
 ```
